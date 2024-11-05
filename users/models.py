@@ -14,12 +14,12 @@ class User(AbstractUser):
         verbose_name="Телефон",
         help_text="Укажите телефон",
     )
-    tg_nick = models.CharField(
+    tg_chat_id = models.CharField(
         max_length=50,
         blank=True,
         null=True,
-        verbose_name="Телеграм",
-        help_text="Укажите Telegram",
+        verbose_name="Телеграм ID",
+        help_text="Укажите Telegram chat ID",
     )
     avatar = models.ImageField(
         upload_to="users/avatars",

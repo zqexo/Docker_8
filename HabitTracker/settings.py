@@ -63,7 +63,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'HabitTracker.wsgi.application'
 
-
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
@@ -72,7 +71,6 @@ DATABASES = {
         "PASSWORD": os.getenv("PASSWORD"),
     }
 }
-
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -97,7 +95,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 STATIC_URL = "static/"
 STATICFILES_DIRS = (BASE_DIR / "static",)
 
@@ -115,7 +112,7 @@ REST_FRAMEWORK = {
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.AllowAny",  # IsAuthenticated/AllowAny
+        "rest_framework.permissions.IsAuthenticated",  # IsAuthenticated/AllowAny
     ],
 }
 
@@ -142,9 +139,9 @@ CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND")
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 
 CELERY_BEAT_SCHEDULE = {
-    "block_if_not_active": {
-        "task": "courses.tasks.block_if_not_active",
-        "schedule": timedelta(days=1),
+    "send_notifications_to_telegram": {
+        "task": "habits.tasks.send_notifications_to_telegram",
+        "schedule": timedelta(minutes=1),
     }
 }
 # Часовой пояс для работы Celery
@@ -155,3 +152,6 @@ CELERY_TASK_TRACK_STARTED = True
 
 # Максимальное время на выполнение задачи
 CELERY_TASK_TIME_LIMIT = 30 * 60
+
+TELEGRAM_URL = "https://api.telegram.org/bot"
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
