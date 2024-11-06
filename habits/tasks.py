@@ -1,11 +1,10 @@
+import logging
 from datetime import datetime
 
 from celery import shared_task
 
 from habits.models import Habit
 from habits.services import send_telegram_message
-
-import logging
 
 
 @shared_task
