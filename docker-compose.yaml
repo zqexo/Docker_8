@@ -1,15 +1,17 @@
-version: '3'
-
 services:
   redis:
     image: redis:latest
     restart: on-failure
     expose:
       - "6379"
-
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   db:
-    image: postgres
+    image: postgres:15.1-alpine
     restart: on-failure
     env_file:
       - .env
@@ -18,11 +20,10 @@ services:
     volumes:
       - pg_data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U $POSTGRES_USER" ]
+      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
       interval: 10s
       timeout: 5s
       retries: 5
-
 
   app:
     build: .
@@ -33,16 +34,17 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     volumes:
       - .:/app
     env_file:
       - .env
-
 
   celery:
     build: .
     tty: true
-    command: celery -A HabitTracker worker --concurrency=4 -P gevent
+    command: celery -A HabitTracker worker --loglevel=info --concurrency=4 -P gevent
     restart: on-failure
     volumes:
       - .:/app
@@ -52,12 +54,11 @@ services:
       - app
     env_file:
       - .env
-
 
   celery-beat:
     build: .
     tty: true
-    command: celery  -A HabitTracker beat --loglevel=info
+    command: celery -A HabitTracker beat --loglevel=info
     restart: on-failure
     volumes:
       - .:/app
@@ -67,7 +68,11 @@ services:
       - app
     env_file:
       - .env
-
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A HabitTracker beat --loglevel=info --detach"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
 volumes:
   pg_data:
